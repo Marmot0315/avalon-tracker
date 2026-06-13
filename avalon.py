@@ -60,7 +60,7 @@ def main(page: ft.Page):
             if not game.is_setup_complete:
                 page.views.append(
                     ft.View(
-                        "/board",
+                        route="/board", # 【語法修復】明確指定 route
                         controls=[
                             ft.Text("阿瓦隆全域歷史戰報看板", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
                             ft.Divider(color=ft.Colors.WHITE24),
@@ -76,7 +76,7 @@ def main(page: ft.Page):
             else:
                 page.views.append(
                     ft.View(
-                        "/board",
+                        route="/board", # 【語法修復】明確指定 route
                         controls=[
                             ft.Text(f"阿瓦隆戰報看板 ({game.total_players}人局)", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
                             ft.Divider(color=ft.Colors.WHITE24),
@@ -93,7 +93,7 @@ def main(page: ft.Page):
             if not game.is_setup_complete:
                 page.views.append(
                     ft.View(
-                        "/admin",
+                        route="/admin", # 【語法修復】明確指定 route
                         controls=[
                             ft.Text("⚙️ 遊戲初始設定", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
                             ft.Divider(color=ft.Colors.WHITE24),
@@ -112,7 +112,7 @@ def main(page: ft.Page):
 
                 page.views.append(
                     ft.View(
-                        "/admin",
+                        route="/admin", # 【語法修復】明確指定 route
                         appbar=ft.AppBar(
                             title=ft.Text(f"任務 {game.current_mission} - 第 {game.current_team_attempt} 次派票", size=18, color=ft.Colors.WHITE70),
                             bgcolor=ft.Colors.BLACK,
@@ -272,7 +272,6 @@ def main(page: ft.Page):
                     icon_color = ft.Colors.RED
                 
                 if is_in_team:
-                    # 【圖示更新】換成盾牌/警徽 LOCAL_POLICE
                     display_content = ft.Icon(ft.Icons.LOCAL_POLICE, color=icon_color, size=20)
                 else:
                     display_content = ft.Container()
