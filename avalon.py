@@ -377,6 +377,7 @@ def main(page: ft.Page):
         else:
             finalize_round("否決")
 
+
     def show_mission_result_dialog():
         max_fails = len(game.selected_team) if game.selected_team else 0
         
@@ -401,23 +402,45 @@ def main(page: ft.Page):
                     final_status = "失敗 (1敗)"
             else:
                 final_status = f"失敗 ({fail_count}敗)"
-                
-            page.close(dlg)
+            
+            # 【修正】新版彈窗關閉方式
+            dlg.open = False
+            page.update()
             finalize_round(final_status)
 
         dlg = ft.AlertDialog(
             title=ft.Text("🚀 任務出發！"),
-            content=ft.Column([
-                ft.Text("任務已啟動，請結算卡牌："),
-                fail_dropdown
-            ], tight=True),
-            actions=[
-                ft.TextButton("確認結算", on_click=on_result_submit, style=ft.ButtonStyle(color=ft.Colors.BLUE_400)),
-            ],
+            content=ft.Column([ft.Text("任務已啟動，請結算卡牌："), fail_dropdown], tight=True),
+            actions=[ft.TextButton("確認結算", on_click=on_result_submit, style=ft.ButtonStyle(color=ft.Colors.BLUE_400))],
             actions_alignment=ft.MainAxisAlignment.END,
             bgcolor=ft.Colors.GREY_900
         )
-        page.open(dlg)
+        
+        # 【修正】新版彈窗顯示方式
+        page.dialog = dlg
+        dlg.open = True
+        page.update()
+
+    def confirm_reset_game(e):
+        def do_reset(e):
+            game.reset_game()
+            reset_dlg.open = False # 【修正】關閉方式
+            page.update()
+            page.pubsub.send_all("update")
+
+        reset_dlg = ft.AlertDialog(
+            title=ft.Text("⚠️ 重新開始遊戲"),
+            content=ft.Text("確定要結束當前遊戲並重新開始嗎？"),
+            actions=[
+                ft.TextButton("取消", on_click=lambda e: (setattr(reset_dlg, 'open', False), page.update())),
+                ft.TextButton("確定重來", on_click=do_reset, style=ft.ButtonStyle(color=ft.Colors.RED_400)),
+            ],
+            bgcolor=ft.Colors.GREY_900,
+        )
+        page.dialog = reset_dlg
+        reset_dlg.open = True
+        page.update()
+
 
     def finalize_round(mission_status):
         round_tag = f"{game.current_mission}-{game.current_team_attempt}"
