@@ -43,7 +43,7 @@ game = GameState()
 
 def main(page: ft.Page):
     page.title = "阿瓦隆戰況推演系統"
-    page.bgcolor = ft.colors.BLACK
+    page.bgcolor = ft.Colors.BLACK
     
     def on_broadcast_message(message):
         build_current_view()
@@ -62,15 +62,15 @@ def main(page: ft.Page):
                     ft.View(
                         "/board",
                         controls=[
-                            ft.Text("阿瓦隆全域歷史戰報看板", size=24, color=ft.colors.WHITE70, weight=ft.FontWeight.BOLD),
-                            ft.Divider(color=ft.colors.WHITE24),
+                            ft.Text("阿瓦隆全域歷史戰報看板", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
+                            ft.Divider(color=ft.Colors.WHITE24),
                             ft.Container(
-                                content=ft.Text("等待書記端設定遊戲人數並開始遊戲...", color=ft.colors.WHITE38, size=20),
+                                content=ft.Text("等待書記端設定遊戲人數並開始遊戲...", color=ft.Colors.WHITE38, size=20),
                                 padding=50,
-                                alignment=ft.alignment.center
+                                alignment=ft.Alignment.CENTER
                             )
                         ],
-                        bgcolor=ft.colors.BLACK
+                        bgcolor=ft.Colors.BLACK
                     )
                 )
             else:
@@ -78,11 +78,11 @@ def main(page: ft.Page):
                     ft.View(
                         "/board",
                         controls=[
-                            ft.Text(f"阿瓦隆戰報看板 ({game.total_players}人局)", size=24, color=ft.colors.WHITE70, weight=ft.FontWeight.BOLD),
-                            ft.Divider(color=ft.colors.WHITE24),
+                            ft.Text(f"阿瓦隆戰報看板 ({game.total_players}人局)", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
+                            ft.Divider(color=ft.Colors.WHITE24),
                             create_board_table(),
                         ],
-                        bgcolor=ft.colors.BLACK
+                        bgcolor=ft.Colors.BLACK
                     )
                 )
             
@@ -95,12 +95,12 @@ def main(page: ft.Page):
                     ft.View(
                         "/admin",
                         controls=[
-                            ft.Text("⚙️ 遊戲初始設定", size=24, color=ft.colors.WHITE70, weight=ft.FontWeight.BOLD),
-                            ft.Divider(color=ft.colors.WHITE24),
-                            ft.Text("請選擇本局玩家總數：", color=ft.colors.WHITE54, size=16),
+                            ft.Text("⚙️ 遊戲初始設定", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD),
+                            ft.Divider(color=ft.Colors.WHITE24),
+                            ft.Text("請選擇本局玩家總數：", color=ft.Colors.WHITE54, size=16),
                             create_setup_controls(),
                         ],
-                        bgcolor=ft.colors.BLACK
+                        bgcolor=ft.Colors.BLACK
                     )
                 )
             else:
@@ -108,55 +108,55 @@ def main(page: ft.Page):
                 is_fifth_attempt = game.current_team_attempt == 5
                 
                 submit_btn_text = "🚨 強制執行並結算" if is_fifth_attempt else "結算送出"
-                submit_btn_color = ft.colors.RED_900 if is_fifth_attempt else ft.colors.BLUE_GREY_900
+                submit_btn_color = ft.Colors.RED_900 if is_fifth_attempt else ft.Colors.BLUE_GREY_900
 
                 page.views.append(
                     ft.View(
                         "/admin",
                         appbar=ft.AppBar(
-                            title=ft.Text(f"任務 {game.current_mission} - 第 {game.current_team_attempt} 次派票", size=18, color=ft.colors.WHITE70),
-                            bgcolor=ft.colors.BLACK,
+                            title=ft.Text(f"任務 {game.current_mission} - 第 {game.current_team_attempt} 次派票", size=18, color=ft.Colors.WHITE70),
+                            bgcolor=ft.Colors.BLACK,
                             actions=[
                                 ft.TextButton(
                                     "重新開始",
-                                    icon=ft.icons.RESTART_ALT,
-                                    icon_color=ft.colors.RED_400,
-                                    style=ft.ButtonStyle(color=ft.colors.RED_400),
+                                    icon=ft.Icons.RESTART_ALT,
+                                    icon_color=ft.Colors.RED_400,
+                                    style=ft.ButtonStyle(color=ft.Colors.RED_400),
                                     on_click=confirm_reset_game
                                 )
                             ]
                         ),
                         controls=[
                             ft.Row([
-                                ft.Text(f"當前隊長：{game.players[game.current_leader_idx]}", size=14, color=ft.colors.WHITE38),
+                                ft.Text(f"當前隊長：{game.players[game.current_leader_idx]}", size=14, color=ft.Colors.WHITE38),
                                 ft.Text(f"應派人數：{required_team_size} 人 (已選: {len(game.selected_team)})", 
                                         size=14, 
-                                        color=ft.colors.AMBER_400 if len(game.selected_team) != required_team_size else ft.colors.GREEN_400,
+                                        color=ft.Colors.AMBER_400 if len(game.selected_team) != required_team_size else ft.Colors.GREEN_400,
                                         weight=ft.FontWeight.BOLD)
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                            ft.Divider(color=ft.colors.WHITE24),
+                            ft.Divider(color=ft.Colors.WHITE24),
                             
                             create_admin_controls(),
-                            ft.Divider(color=ft.colors.WHITE10),
+                            ft.Divider(color=ft.Colors.WHITE10),
                             
                             ft.Row([
                                 ft.Row([
                                     ft.IconButton(
-                                        icon=ft.icons.UNDO,
+                                        icon=ft.Icons.UNDO,
                                         tooltip="復原上一步",
                                         on_click=undo_last_action,
                                         disabled=len(game.history) == 0,
-                                        icon_color=ft.colors.WHITE70,
-                                        bgcolor=ft.colors.GREY_900,
+                                        icon_color=ft.Colors.WHITE70,
+                                        bgcolor=ft.Colors.GREY_900,
                                         icon_size=24,
                                     ),
                                     ft.IconButton(
-                                        icon=ft.icons.REDO,
+                                        icon=ft.Icons.REDO,
                                         tooltip="取消復原 (重做)",
                                         on_click=redo_action,
                                         disabled=len(game.redo_stack) == 0,
-                                        icon_color=ft.colors.WHITE70,
-                                        bgcolor=ft.colors.GREY_900,
+                                        icon_color=ft.Colors.WHITE70,
+                                        bgcolor=ft.Colors.GREY_900,
                                         icon_size=24,
                                     )
                                 ], spacing=10),
@@ -166,28 +166,25 @@ def main(page: ft.Page):
                                     on_click=process_voting_result,
                                     style=ft.ButtonStyle(
                                         bgcolor=submit_btn_color, 
-                                        color=ft.colors.WHITE,
-                                        padding=ft.padding.symmetric(horizontal=30, vertical=15),
+                                        color=ft.Colors.WHITE,
+                                        padding=ft.Padding(left=30, top=15, right=30, bottom=15),
                                     ),
                                     height=60,
                                 )
                             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
                         ],
-                        bgcolor=ft.colors.BLACK
+                        bgcolor=ft.Colors.BLACK
                     )
                 )
         page.update()
 
-    # -------------------------------------------------------------
-    # UI 元件與互動邏輯區塊
-    # -------------------------------------------------------------
     def create_setup_controls():
         player_dropdown = ft.Dropdown(
             value="5",
             options=[ft.dropdown.Option(str(i)) for i in range(5, 11)],
             width=150,
-            color=ft.colors.WHITE,
-            bgcolor=ft.colors.GREY_900
+            color=ft.Colors.WHITE,
+            bgcolor=ft.Colors.GREY_900
         )
         
         def on_start_click(e):
@@ -200,7 +197,7 @@ def main(page: ft.Page):
             ft.ElevatedButton(
                 "確認並建立遊戲",
                 on_click=on_start_click,
-                style=ft.ButtonStyle(bgcolor=ft.colors.BLUE_700, color=ft.colors.WHITE)
+                style=ft.ButtonStyle(bgcolor=ft.Colors.BLUE_700, color=ft.Colors.WHITE)
             )
         ])
 
@@ -219,12 +216,12 @@ def main(page: ft.Page):
             vote_status = game.current_votes[player]
             
             if is_fifth_attempt:
-                vote_ui = ft.Text("🚨 強制", color=ft.colors.RED_400, weight=ft.FontWeight.BOLD, width=80, text_align=ft.TextAlign.RIGHT)
+                vote_ui = ft.Text("🚨 強制", color=ft.Colors.RED_400, weight=ft.FontWeight.BOLD, width=80, text_align=ft.TextAlign.RIGHT)
             else:
                 vote_ui = ft.TextButton(f"投票: {vote_status}", on_click=make_vote_handler(), width=80)
 
             row = ft.Row([
-                ft.Text(player, size=16, expand=True, color=ft.colors.WHITE54),
+                ft.Text(player, size=16, expand=True, color=ft.Colors.WHITE54),
                 ft.Checkbox(label="出任務", value=is_in_team, on_change=make_team_handler()),
                 vote_ui,
             ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
@@ -235,7 +232,7 @@ def main(page: ft.Page):
     def create_board_table():
         if not game.history:
             return ft.Container(
-                content=ft.Text("等待第一輪投票結果...", color=ft.colors.WHITE38),
+                content=ft.Text("等待第一輪投票結果...", color=ft.Colors.WHITE38),
                 padding=50
             )
             
@@ -249,14 +246,14 @@ def main(page: ft.Page):
             
         rows = []
         for h in game.history:
-            status_color = ft.colors.WHITE54
-            if "成功" in h["status"]: status_color = ft.colors.BLUE_400
-            elif "失敗" in h["status"]: status_color = ft.colors.RED_400
-            elif h["status"] == "否決": status_color = ft.colors.GREY_600
+            status_color = ft.Colors.WHITE54
+            if "成功" in h["status"]: status_color = ft.Colors.BLUE_400
+            elif "失敗" in h["status"]: status_color = ft.Colors.RED_400
+            elif h["status"] == "否決": status_color = ft.Colors.GREY_600
 
             cells = [
-                ft.DataCell(ft.Text(h["round"], color=ft.colors.WHITE70)),
-                ft.DataCell(ft.Text(h["leader"], color=ft.colors.WHITE54)),
+                ft.DataCell(ft.Text(h["round"], color=ft.Colors.WHITE70)),
+                ft.DataCell(ft.Text(h["leader"], color=ft.Colors.WHITE54)),
                 ft.DataCell(ft.Text(h["status"], color=status_color, weight=ft.FontWeight.BOLD)),
             ]
             
@@ -264,19 +261,19 @@ def main(page: ft.Page):
                 vote = h["votes"].get(player, "-")
                 is_in_team = player in h["team"]
                 
-                # 【顏色邏輯更新】完全套用你指定的高對比紅標記設計
                 if vote == "⭕":
-                    bg_color = ft.colors.WHITE
-                    icon_color = ft.colors.RED
+                    bg_color = ft.Colors.WHITE
+                    icon_color = ft.Colors.RED
                 elif vote == "❌":
-                    bg_color = ft.colors.GREY_900
-                    icon_color = ft.colors.RED
+                    bg_color = ft.Colors.GREY_900
+                    icon_color = ft.Colors.RED
                 else:
-                    bg_color = ft.colors.GREY_900
-                    icon_color = ft.colors.RED
+                    bg_color = ft.Colors.GREY_900
+                    icon_color = ft.Colors.RED
                 
                 if is_in_team:
-                    display_content = ft.Icon(ft.icons.LOCAL_POLICE, color=icon_color, size=20)
+                    # 【圖示更新】換成盾牌/警徽 LOCAL_POLICE
+                    display_content = ft.Icon(ft.Icons.LOCAL_POLICE, color=icon_color, size=20)
                 else:
                     display_content = ft.Container()
                 
@@ -288,7 +285,7 @@ def main(page: ft.Page):
                             width=40,
                             height=30,
                             border_radius=4,
-                            alignment=ft.alignment.center
+                            alignment=ft.Alignment.CENTER
                         )
                     )
                 )
@@ -349,9 +346,9 @@ def main(page: ft.Page):
             content=ft.Text("確定要結束當前遊戲並重新開始嗎？\n大螢幕與手機端的所有歷史紀錄將會被清空！"),
             actions=[
                 ft.TextButton("取消", on_click=lambda e: page.close(reset_dlg)),
-                ft.TextButton("確定重來", on_click=do_reset, style=ft.ButtonStyle(color=ft.colors.RED_400)),
+                ft.TextButton("確定重來", on_click=do_reset, style=ft.ButtonStyle(color=ft.Colors.RED_400)),
             ],
-            bgcolor=ft.colors.GREY_900,
+            bgcolor=ft.Colors.GREY_900,
         )
         page.open(reset_dlg)
 
@@ -362,7 +359,7 @@ def main(page: ft.Page):
                 title=ft.Text("⚠️ 任務人數錯誤"),
                 content=ft.Text(f"第 {game.current_mission} 個任務必須派出 {required_team_size} 人！\n您目前勾選了 {len(game.selected_team)} 人。"),
                 actions=[ft.TextButton("我知道了", on_click=lambda e: page.close(err_dlg))],
-                bgcolor=ft.colors.GREY_900
+                bgcolor=ft.Colors.GREY_900
             )
             page.open(err_dlg)
             return
@@ -389,8 +386,8 @@ def main(page: ft.Page):
             value="0",
             options=[ft.dropdown.Option(str(i)) for i in range(max_fails + 1)],
             width=150,
-            bgcolor=ft.colors.GREY_800,
-            color=ft.colors.WHITE
+            bgcolor=ft.Colors.GREY_800,
+            color=ft.Colors.WHITE
         )
 
         def on_result_submit(e):
@@ -416,10 +413,10 @@ def main(page: ft.Page):
                 fail_dropdown
             ], tight=True),
             actions=[
-                ft.TextButton("確認結算", on_click=on_result_submit, style=ft.ButtonStyle(color=ft.colors.BLUE_400)),
+                ft.TextButton("確認結算", on_click=on_result_submit, style=ft.ButtonStyle(color=ft.Colors.BLUE_400)),
             ],
             actions_alignment=ft.MainAxisAlignment.END,
-            bgcolor=ft.colors.GREY_900
+            bgcolor=ft.Colors.GREY_900
         )
         page.open(dlg)
 
@@ -456,7 +453,6 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     build_current_view()
 
-# 雲端部署專用語法
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     ft.app(target=main, view=ft.AppView.WEB_BROWSER, port=port, host="0.0.0.0")
