@@ -54,76 +54,49 @@ def main(page: ft.Page):
         
         if page.route == "/board":
             if not game.is_setup_complete:
-                page.views.append(ft.View(route="/board", controls=[ft.Text("等待書記端設定遊戲人數並開始遊戲...", color=ft.Colors.WHITE38, size=20)], bgcolor=ft.Colors.BLACK))
+                page.views.append(ft.View(route="/board", controls=[ft.Text("等待遊戲開始...", color=ft.Colors.WHITE38)], bgcolor=ft.Colors.BLACK))
             else:
-                page.views.append(ft.View(route="/board", controls=[ft.Text(f"阿瓦隆戰報看板 ({game.total_players}人局)", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD), ft.Divider(color=ft.Colors.WHITE24), create_board_table()], bgcolor=ft.Colors.BLACK))
+                page.views.append(ft.View(route="/board", controls=[ft.Text("阿瓦隆戰報", size=20, color=ft.Colors.WHITE), create_board_table()], bgcolor=ft.Colors.BLACK))
         else:
             if not game.is_setup_complete:
-                page.views.append(ft.View(route="/admin", controls=[ft.Text("⚙️ 遊戲初始設定", size=24, color=ft.Colors.WHITE70, weight=ft.FontWeight.BOLD), ft.Divider(color=ft.Colors.WHITE24), ft.Text("請選擇本局玩家總數：", color=ft.Colors.WHITE54, size=16), create_setup_controls()], bgcolor=ft.Colors.BLACK))
+                page.views.append(ft.View(route="/admin", controls=[ft.Text("設定遊戲", color=ft.Colors.WHITE), create_setup_controls()], bgcolor=ft.Colors.BLACK))
             else:
-                required_team_size = MISSION_SIZES[game.total_players][game.current_mission - 1]
-                is_fifth_attempt = game.current_team_attempt == 5
-                submit_btn_text = "🚨 強制執行並結算" if is_fifth_attempt else "結算送出"
-                submit_btn_color = ft.Colors.RED_900 if is_fifth_attempt else ft.Colors.BLUE_GREY_900
-
-                page.views.append(ft.View(
-                    route="/admin",
-                    appbar=ft.AppBar(title=ft.Text(f"任務 {game.current_mission} - 第 {game.current_team_attempt} 次派票", size=18, color=ft.Colors.WHITE70), bgcolor=ft.Colors.BLACK, actions=[ft.TextButton("重新開始", icon=ft.Icons.RESTART_ALT, icon_color=ft.Colors.RED_400, style=ft.ButtonStyle(color=ft.Colors.RED_400), on_click=confirm_reset_game)]),
-                    controls=[
-                        ft.Row([ft.Text(f"當前隊長：{game.players[game.current_leader_idx]}", size=14, color=ft.Colors.WHITE38), ft.Text(f"應派人數：{required_team_size} 人 (已選: {len(game.selected_team)})", size=14, color=ft.Colors.AMBER_400 if len(game.selected_team) != required_team_size else ft.Colors.GREEN_400, weight=ft.FontWeight.BOLD)], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-                        ft.Divider(color=ft.Colors.WHITE24),
-                        create_admin_controls(),
-                        ft.Divider(color=ft.Colors.WHITE10),
-                        ft.Row([
-                            ft.Row([ft.IconButton(icon=ft.Icons.UNDO, on_click=undo_last_action, disabled=len(game.history) == 0, icon_color=ft.Colors.WHITE70, bgcolor=ft.Colors.GREY_900), ft.IconButton(icon=ft.Icons.REDO, on_click=redo_action, disabled=len(game.redo_stack) == 0, icon_color=ft.Colors.WHITE70, bgcolor=ft.Colors.GREY_900)], spacing=10),
-                            ft.ElevatedButton(submit_btn_text, on_click=process_voting_result, style=ft.ButtonStyle(bgcolor=submit_btn_color, color=ft.Colors.WHITE, padding=ft.Padding(left=30, top=15, right=30, bottom=15)), height=60)
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN)
-                    ], bgcolor=ft.Colors.BLACK
-                ))
+                page.views.append(ft.View(route="/admin", controls=[ft.Text(f"任務 {game.current_mission}", color=ft.Colors.WHITE), create_admin_controls(), ft.ElevatedButton("送出", on_click=process_voting_result)], bgcolor=ft.Colors.BLACK))
         page.update()
 
-    # --- 關鍵修正：彈窗邏輯更新 ---
-    def show_mission_result_dialog():
-        dlg = ft.AlertDialog(
-            title=ft.Text("🚀 任務出發！"),
-            content=ft.Column([ft.Text("請結算失敗票數："), fail_dropdown := ft.Dropdown(options=[ft.dropdown.Option(str(i)) for i in range(len(game.selected_team) + 1)], value="0")], tight=True),
-            actions=[ft.TextButton("確認結算", on_click=lambda e: (setattr(dlg, 'open', False), page.update(), finalize_round(calculate_status(int(fail_dropdown.value)))))],
-            bgcolor=ft.Colors.GREY_900
-        )
-        page.dialog = dlg
-        dlg.open = True
-        page.update()
+    def create_setup_controls():
+        drop = ft.Dropdown(value="5", options=[ft.dropdown.Option(str(i)) for i in range(5, 11)])
+        return ft.Column([drop, ft.ElevatedButton("開始", on_click=lambda e: (game.start_game(int(drop.value)), page.pubsub.send_all("update")))])
 
-    def confirm_reset_game(e):
-        def do_reset(e):
-            game.reset_game()
-            reset_dlg.open = False
-            page.update()
-            page.pubsub.send_all("update")
-        reset_dlg = ft.AlertDialog(title=ft.Text("⚠️ 重新開始"), content=ft.Text("確定重來？"), actions=[ft.TextButton("確定", on_click=do_reset)])
-        page.dialog = reset_dlg
-        reset_dlg.open = True
-        page.update()
+    def create_admin_controls():
+        controls = []
+        for p in game.players:
+            controls.append(ft.Row([
+                ft.Text(p, color=ft.Colors.WHITE),
+                ft.Checkbox(on_change=lambda e, p=p: (game.selected_team.add(p) if e.control.value else game.selected_team.discard(p))),
+                ft.TextButton(game.current_votes[p], on_click=lambda e, p=p: (setattr(game, 'current_votes', {**game.current_votes, p: "⭕" if game.current_votes[p] == "❌" else "❌"}), build_current_view()))
+            ]))
+        return ft.Column(controls)
 
-    def calculate_status(fail_count):
-        if fail_count == 0: return "成功"
-        if fail_count == 1 and game.total_players >= 7 and game.current_mission == 4: return "成功 (1敗)"
-        return f"失敗 ({fail_count}敗)"
+    def create_board_table():
+        rows = []
+        for h in game.history:
+            cells = [ft.DataCell(ft.Text(h["round"], color=ft.Colors.WHITE)), ft.DataCell(ft.Text(h["leader"], color=ft.Colors.WHITE)), ft.DataCell(ft.Text(h["status"], color=ft.Colors.WHITE))]
+            for p in game.players:
+                vote = h["votes"].get(p, "-")
+                cells.append(ft.DataCell(ft.Container(
+                    content=ft.Icon(ft.Icons.LOCAL_POLICE, color=ft.Colors.RED) if p in h["team"] else ft.Container(), 
+                    bgcolor=ft.Colors.WHITE if vote == "⭕" else ft.Colors.GREY_800, 
+                    width=40, height=30, alignment=ft.alignment.center
+                )))
+            rows.append(ft.DataRow(cells=cells))
+        return ft.DataTable(columns=[ft.DataColumn(ft.Text("局", color=ft.Colors.WHITE)), ft.DataColumn(ft.Text("隊長", color=ft.Colors.WHITE)), ft.DataColumn(ft.Text("結果", color=ft.Colors.WHITE))] + [ft.DataColumn(ft.Text(p, color=ft.Colors.WHITE)) for p in game.players], rows=rows)
 
-    def finalize_round(mission_status):
-        round_tag = f"{game.current_mission}-{game.current_team_attempt}"
-        game.history.append({"round": round_tag, "leader": game.players[game.current_leader_idx], "team": list(game.selected_team), "votes": game.current_votes.copy(), "status": mission_status})
-        game.redo_stack.clear()
-        if "成功" in mission_status or "失敗" in mission_status: game.current_mission += 1; game.current_team_attempt = 1
-        else: game.current_team_attempt += 1
-        game.current_leader_idx = (game.current_leader_idx + 1) % len(game.players)
-        game.selected_team.clear()
-        game.current_votes = {player: "❌" for player in game.players}
-        page.pubsub.send_all("update")
+    def process_voting_result(e):
+        game.history.append({"round": f"{game.current_mission}-{game.current_team_attempt}", "leader": game.players[game.current_leader_idx], "team": list(game.selected_team), "votes": game.current_votes.copy(), "status": "成功"})
+        game.current_mission += 1; game.current_votes = {p: "❌" for p in game.players}; game.selected_team.clear(); page.pubsub.send_all("update")
 
-    # ... (其餘邏輯保持不變) ...
-    def route_change(route): build_current_view()
-    page.on_route_change = route_change
+    page.on_route_change = lambda e: build_current_view()
     build_current_view()
 
 if __name__ == "__main__":
